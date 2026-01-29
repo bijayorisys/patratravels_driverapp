@@ -20,7 +20,7 @@ const pool = mysql.createPool({
     enableKeepAlive: true,       
     keepAliveInitialDelay: 10000,
     maxIdle: 10,                 // Keeps 10 connections warm even when no one is active
-    idleTimeout: 60000           // Closes idle connections after 60 seconds
+    idleTimeout: 90000           // Closes idle connections after 90 seconds
 });
 
 export default {

@@ -1,5 +1,5 @@
 import db from "../config/database.js";
-import { sendEmail } from "../utils/emailService.js"; 
+import { sendEmail } from "../utils/emailService.js";
 
 // 1. HELPER: Generate HTML Table for Checklist
 const generateChecklistHTML = (checklistObj) => {
@@ -29,161 +29,331 @@ const generateChecklistHTML = (checklistObj) => {
 };
 
 // 2. HELPER: Prepare and Send Email (Background Task)
+// const sendEmailInBackground = async (
+//   driver,
+//   actionType,
+//   currentTime,
+//   odoVal,
+//   checklist
+// ) => {
+//   try {
+//     const checklistHTML = generateChecklistHTML(checklist);
+
+//     // Format time to Indian Standard Time
+//     const timeString = currentTime.toLocaleString("en-IN", {
+//       timeZone: "Asia/Kolkata",
+//       dateStyle: "medium",
+//       timeStyle: "short",
+//     });
+
+//     // Create the Email Body
+//     const emailSubject = `DUTY ${actionType}: ${driver.driver_fstname} (${driver.regNo || driver.id})`;
+//     const emailBody = `
+//       <div style="font-family: Arial, sans-serif; max-width: 600px; border: 1px solid #ddd; padding: 20px;">
+//         <h2 style="color: #fd7e14; margin-top: 0;">Driver Duty: ${actionType}</h2>
+//         <p><strong>Driver Name:</strong> ${driver.driver_fstname} ${driver.driver_lstname || ""}</p>
+//         <p><strong>Driver ID:</strong> ${driver.regNo || driver.id}</p>
+//         <p><strong>Time:</strong> ${timeString}</p>
+//         <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;" />
+
+//         <h3 style="margin-bottom: 5px;">🚗 Odometer Reading</h3>
+//         <p style="font-size: 24px; font-weight: bold; margin-top: 0; color: #333;">${odoVal} KM</p>
+
+//         <h3 style="margin-bottom: 10px;">📋 Safety Checklist Report</h3>
+//         ${checklistHTML}
+
+//         <p style="margin-top: 30px; font-size: 12px; color: #888;">
+//           This is an automated message from the Patra Travels App.
+//         </p>
+//       </div>
+//     `;
+// //     const emailBody = `
+// // <div style="font-family: Arial, sans-serif; background:#f4f6f8; padding:16px;">
+// //   <div style="
+// //     max-width:600px;
+// //     margin:auto;
+// //     background:#ffffff;
+// //     border-radius:10px;
+// //     overflow:hidden;
+// //     box-shadow:0 4px 12px rgba(0,0,0,0.08);
+// //   ">
+
+// //     <!-- HEADER -->
+// //     <div style="
+// //       background:#fd7e14;
+// //       color:#ffffff;
+// //       padding:16px;
+// //       text-align:center;
+// //     ">
+// //       <h2 style="margin:0; font-size:20px;">
+// //         🚗 Driver Duty ${actionType}
+// //       </h2>
+// //       <p style="margin:4px 0 0; font-size:13px; opacity:0.9;">
+// //         Patra Travels – Duty Update
+// //       </p>
+// //     </div>
+
+// //     <!-- BODY -->
+// //     <div style="padding:16px; color:#111827; font-size:14px; line-height:1.6;">
+
+// //       <!-- DRIVER DETAILS -->
+// //       <div style="margin-bottom:14px;">
+// //         <p style="margin:0 0 6px;">
+// //           <strong>Driver Name</strong><br />
+// //           ${driver.driver_fstname} ${driver.driver_lstname || ""}
+// //         </p>
+// //         <p style="margin:0 0 6px;">
+// //           <strong>Driver ID</strong><br />
+// //           ${driver.regNo || driver.id}
+// //         </p>
+// //         <p style="margin:0;">
+// //           <strong>Time</strong><br />
+// //           ${timeString}
+// //         </p>
+// //       </div>
+
+// //       <hr style="border:none; border-top:1px solid #e5e7eb; margin:16px 0;" />
+
+// //       <!-- ODOMETER -->
+// //       <div style="
+// //         background:#f9fafb;
+// //         padding:14px;
+// //         border-radius:8px;
+// //         text-align:center;
+// //         margin-bottom:16px;
+// //       ">
+// //         <div style="font-size:13px; color:#6b7280; margin-bottom:4px;">
+// //           🚘 Odometer Reading
+// //         </div>
+// //         <div style="
+// //           font-size:26px;
+// //           font-weight:bold;
+// //           color:#111827;
+// //         ">
+// //           ${odoVal} KM
+// //         </div>
+// //       </div>
+
+// //       <!-- CHECKLIST -->
+// //       <div style="margin-bottom:20px;">
+// //         <h3 style="
+// //           margin:0 0 10px;
+// //           font-size:16px;
+// //           color:#111827;
+// //         ">
+// //           📋 Safety Checklist Report
+// //         </h3>
+// //         ${checklistHTML}
+// //       </div>
+
+// //     </div>
+
+// //     <!-- FOOTER -->
+// //     <div style="
+// //       background:#f3f4f6;
+// //       padding:10px;
+// //       text-align:center;
+// //       font-size:12px;
+// //       color:#6b7280;
+// //     ">
+// //       This is an automated message from the Patra Travels App.
+// //     </div>
+
+// //   </div>
+// // </div>
+// // `;
+
+//     // CALL THE SHARED SERVICE
+//     await sendEmail({
+//       to: process.env.ADMIN_EMAIL,
+//       subject: emailSubject,
+//       html: emailBody,
+//       // No attachments needed as per your request
+//     });
+
+//   } catch (err) {
+//     console.error("❌ Background Email Failed:", err.message);
+//   }
+// };
+
+// // 3. MAIN FUNCTION: Submit Duty
+// export const submitduty = async ({
+//   driver,
+//   odometerFileName,
+//   odometerValue,
+//   ci_itemchkstatus,
+//   buttonParameter,
+// }) => {
+//   const isStart = buttonParameter === 1;
+//   const actionType = isStart ? "START" : "END";
+//   const currentTime = new Date();
+
+//   // --- DATABASE OPERATIONS ---
+//   if (isStart) {
+//     // START DUTY LOGIC
+//     // const [result] = await db.execute(
+//     //   `INSERT INTO drv_duty_details (
+//     //      drv_id, duty_in_datetime, ciodomtr_image, odo_civalue, ci_itemchkstatus, ck_sts
+//     //    )
+//     //    SELECT ?, NOW(), ?, ?, ?, 1
+//     //    FROM DUAL
+//     //    WHERE NOT EXISTS (
+//     //      SELECT 1 FROM drv_duty_details
+//     //      WHERE drv_id = ? AND ck_sts = 1
+//     //    )`,
+//     //   [
+//     //     driver.id,
+//     //     odometerFileName,
+//     //     odometerValue,
+//     //     JSON.stringify(ci_itemchkstatus),
+//     //     driver.id,
+//     //   ]
+//     // );
+//     // INSIDE submitduty FUNCTION (Start Logic)
+
+//     // START DUTY LOGIC
+//     const [result] = await db.execute(
+//       `INSERT INTO drv_duty_details (
+//           drv_id,
+//           duty_in_datetime,
+//           created_date,        -- 1. ADD COLUMN HERE
+//           ciodomtr_image,
+//           odo_civalue,
+//           ci_itemchkstatus,
+//           ck_sts
+//        )
+//        SELECT
+//           ?,
+//           NOW(),
+//           NOW(),               -- 2. INSERT VALUE HERE (Current Date/Time)
+//           ?,
+//           ?,
+//           ?,
+//           1
+//        FROM DUAL
+//        WHERE NOT EXISTS (
+//          SELECT 1 FROM drv_duty_details
+//          WHERE drv_id = ?
+//          AND ck_sts = 1
+//          AND DATE(created_date) = DATE(NOW()) -- 3. USE IT HERE FOR VALIDATION
+//        )`,
+//       [
+//         driver.id,
+//         // (NOW() is handled by SQL)
+//         // (NOW() is handled by SQL)
+//         odometerFileName,
+//         odometerValue,
+//         JSON.stringify(ci_itemchkstatus),
+//         driver.id,
+//       ]
+//     );
+
+//     if (result.affectedRows === 0) throw new Error("You are already On Duty.");
+
+//   } else {
+//     // END DUTY LOGIC
+//     // 1. Find the active duty row
+//     const [activeRows] = await db.execute(
+//       `SELECT id, odo_civalue FROM drv_duty_details
+//        WHERE drv_id = ? AND ck_sts = 1
+//        ORDER BY id DESC LIMIT 1`,
+//       [driver.id]
+//     );
+
+//     if (activeRows.length === 0) throw new Error("No active duty found to end.");
+
+//     const activeDuty = activeRows[0];
+
+//     // 2. Validation: End Odo > Start Odo
+//     if (parseFloat(odometerValue) <= parseFloat(activeDuty.odo_civalue)) {
+//       throw new Error(
+//         `End Odometer must be higher than Start (${activeDuty.odo_civalue})`
+//       );
+//     }
+
+//     // 3. Update the row
+//     await db.execute(
+//       `UPDATE drv_duty_details
+//        SET duty_out_datetime = NOW(),
+//            coodomtr_image = ?,
+//            odo_covalue = ?,
+//            co_itemchkstatus = ?,
+//            ck_sts = 2
+//        WHERE id = ?`,
+//       [
+//         odometerFileName,
+//         odometerValue,
+//         JSON.stringify(ci_itemchkstatus),
+//         activeDuty.id,
+//       ]
+//     );
+//   }
+
+//   // --- TRIGGER EMAIL IN BACKGROUND ---
+//   // Using setImmediate ensures the driver gets a fast response in the App
+//   // while the email sends asynchronously.
+//   setImmediate(() => {
+//     sendEmailInBackground(
+//       driver,
+//       actionType,
+//       currentTime,
+//       odometerValue,
+//       ci_itemchkstatus
+//     );
+//   });
+
+//   return { success: true, message: `Duty ${actionType} Successful` };
+// };
+
+// 2. HELPER: Updated Email Background Task
 const sendEmailInBackground = async (
   driver,
   actionType,
   currentTime,
   odoVal,
-  checklist
+  checklist,
+  location,
 ) => {
   try {
     const checklistHTML = generateChecklistHTML(checklist);
-
-    // Format time to Indian Standard Time
     const timeString = currentTime.toLocaleString("en-IN", {
       timeZone: "Asia/Kolkata",
       dateStyle: "medium",
       timeStyle: "short",
     });
 
-    // Create the Email Body
-    const emailSubject = `DUTY ${actionType}: ${driver.driver_fstname} (${driver.regNo || driver.id})`;
+    const emailSubject = `DUTY ${actionType}: ${driver.driver_fstname} (${driver.regNo})`;
     const emailBody = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; border: 1px solid #ddd; padding: 20px;">
         <h2 style="color: #fd7e14; margin-top: 0;">Driver Duty: ${actionType}</h2>
-        <p><strong>Driver Name:</strong> ${driver.driver_fstname} ${driver.driver_lstname || ""}</p>
-        <p><strong>Driver ID:</strong> ${driver.regNo || driver.id}</p>
-        <p><strong>Time:</strong> ${timeString}</p>
-        <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;" />
-        
-        <h3 style="margin-bottom: 5px;">🚗 Odometer Reading</h3>
-        <p style="font-size: 24px; font-weight: bold; margin-top: 0; color: #333;">${odoVal} KM</p>
-        
-        <h3 style="margin-bottom: 10px;">📋 Safety Checklist Report</h3>
+        <p><strong>Driver:</strong> ${driver.driver_fstname} | <strong>ID:</strong> ${driver.regNo}</p>
+        <p><strong>Mobile:</strong> ${driver.mobileNumber || "N/A"}</p> <p><strong>Location:</strong> ${location || "Unknown"}</p> <p><strong>Time:</strong> ${timeString}</p>
+        <hr/>
+        <h3>🚗 Odometer: ${odoVal} KM</h3>
+        <h3>📋 Safety Checklist</h3>
         ${checklistHTML}
-        
-        <p style="margin-top: 30px; font-size: 12px; color: #888;">
-          This is an automated message from the Patra Travels App.
-        </p>
-      </div>
-    `;
-//     const emailBody = `
-// <div style="font-family: Arial, sans-serif; background:#f4f6f8; padding:16px;">
-//   <div style="
-//     max-width:600px;
-//     margin:auto;
-//     background:#ffffff;
-//     border-radius:10px;
-//     overflow:hidden;
-//     box-shadow:0 4px 12px rgba(0,0,0,0.08);
-//   ">
+      </div>`;
 
-//     <!-- HEADER -->
-//     <div style="
-//       background:#fd7e14;
-//       color:#ffffff;
-//       padding:16px;
-//       text-align:center;
-//     ">
-//       <h2 style="margin:0; font-size:20px;">
-//         🚗 Driver Duty ${actionType}
-//       </h2>
-//       <p style="margin:4px 0 0; font-size:13px; opacity:0.9;">
-//         Patra Travels – Duty Update
-//       </p>
-//     </div>
-
-//     <!-- BODY -->
-//     <div style="padding:16px; color:#111827; font-size:14px; line-height:1.6;">
-
-//       <!-- DRIVER DETAILS -->
-//       <div style="margin-bottom:14px;">
-//         <p style="margin:0 0 6px;">
-//           <strong>Driver Name</strong><br />
-//           ${driver.driver_fstname} ${driver.driver_lstname || ""}
-//         </p>
-//         <p style="margin:0 0 6px;">
-//           <strong>Driver ID</strong><br />
-//           ${driver.regNo || driver.id}
-//         </p>
-//         <p style="margin:0;">
-//           <strong>Time</strong><br />
-//           ${timeString}
-//         </p>
-//       </div>
-
-//       <hr style="border:none; border-top:1px solid #e5e7eb; margin:16px 0;" />
-
-//       <!-- ODOMETER -->
-//       <div style="
-//         background:#f9fafb;
-//         padding:14px;
-//         border-radius:8px;
-//         text-align:center;
-//         margin-bottom:16px;
-//       ">
-//         <div style="font-size:13px; color:#6b7280; margin-bottom:4px;">
-//           🚘 Odometer Reading
-//         </div>
-//         <div style="
-//           font-size:26px;
-//           font-weight:bold;
-//           color:#111827;
-//         ">
-//           ${odoVal} KM
-//         </div>
-//       </div>
-
-//       <!-- CHECKLIST -->
-//       <div style="margin-bottom:20px;">
-//         <h3 style="
-//           margin:0 0 10px;
-//           font-size:16px;
-//           color:#111827;
-//         ">
-//           📋 Safety Checklist Report
-//         </h3>
-//         ${checklistHTML}
-//       </div>
-
-//     </div>
-
-//     <!-- FOOTER -->
-//     <div style="
-//       background:#f3f4f6;
-//       padding:10px;
-//       text-align:center;
-//       font-size:12px;
-//       color:#6b7280;
-//     ">
-//       This is an automated message from the Patra Travels App.
-//     </div>
-
-//   </div>
-// </div>
-// `;
-
-
-    // CALL THE SHARED SERVICE
     await sendEmail({
       to: process.env.ADMIN_EMAIL,
       subject: emailSubject,
       html: emailBody,
-      // No attachments needed as per your request
     });
-
   } catch (err) {
-    console.error("❌ Background Email Failed:", err.message);
+    console.error("❌ Email Failed:", err.message);
   }
 };
 
-// 3. MAIN FUNCTION: Submit Duty
+// 3. MAIN FUNCTION: Updated with GPS Logic
 export const submitduty = async ({
   driver,
   odometerFileName,
   odometerValue,
   ci_itemchkstatus,
   buttonParameter,
+  latitude,
+  longitude,
+  locationName,
 }) => {
   const isStart = buttonParameter === 1;
   const actionType = isStart ? "START" : "END";
@@ -192,72 +362,37 @@ export const submitduty = async ({
   // --- DATABASE OPERATIONS ---
   if (isStart) {
     // START DUTY LOGIC
-    // const [result] = await db.execute(
-    //   `INSERT INTO drv_duty_details (
-    //      drv_id, duty_in_datetime, ciodomtr_image, odo_civalue, ci_itemchkstatus, ck_sts
-    //    ) 
-    //    SELECT ?, NOW(), ?, ?, ?, 1
-    //    FROM DUAL
-    //    WHERE NOT EXISTS (
-    //      SELECT 1 FROM drv_duty_details 
-    //      WHERE drv_id = ? AND ck_sts = 1
-    //    )`,
-    //   [
-    //     driver.id,
-    //     odometerFileName,
-    //     odometerValue,
-    //     JSON.stringify(ci_itemchkstatus),
-    //     driver.id,
-    //   ]
-    // );
-    // INSIDE submitduty FUNCTION (Start Logic)
-
-    // START DUTY LOGIC
     const [result] = await db.execute(
       `INSERT INTO drv_duty_details (
-          drv_id, 
-          duty_in_datetime, 
-          created_date,        -- 1. ADD COLUMN HERE
-          ciodomtr_image, 
-          odo_civalue, 
-          ci_itemchkstatus, 
-          ck_sts
+          drv_id, duty_in_datetime, created_date, ciodomtr_image, odo_civalue, ci_itemchkstatus, ck_sts,
+          ci_latitude, ci_longitude, ci_location
        ) 
-       SELECT 
-          ?, 
-          NOW(), 
-          NOW(),               -- 2. INSERT VALUE HERE (Current Date/Time)
-          ?, 
-          ?, 
-          ?, 
-          1
+       SELECT ?, NOW(), NOW(), ?, ?, ?, 1, ?, ?, ?
        FROM DUAL
        WHERE NOT EXISTS (
          SELECT 1 FROM drv_duty_details 
-         WHERE drv_id = ? 
-         AND ck_sts = 1 
-         AND DATE(created_date) = DATE(NOW()) -- 3. USE IT HERE FOR VALIDATION
+         WHERE drv_id = ? AND ck_sts = 1 
+         AND DATE(CONVERT_TZ(created_date, '+00:00', '+05:30')) = DATE(CONVERT_TZ(NOW(), '+00:00', '+05:30'))
        )`,
       [
         driver.id,
-        // (NOW() is handled by SQL)
-        // (NOW() is handled by SQL)
         odometerFileName,
         odometerValue,
         JSON.stringify(ci_itemchkstatus),
+        latitude,
+        longitude,
+        locationName,
         driver.id,
       ]
     );
 
     if (result.affectedRows === 0) throw new Error("You are already On Duty.");
-
+    
   } else {
     // END DUTY LOGIC
     // 1. Find the active duty row
     const [activeRows] = await db.execute(
-      `SELECT id, odo_civalue FROM drv_duty_details 
-       WHERE drv_id = ? AND ck_sts = 1 
-       ORDER BY id DESC LIMIT 1`,
+      `SELECT id, odo_civalue FROM drv_duty_details WHERE drv_id = ? AND ck_sts = 1 ORDER BY id DESC LIMIT 1`,
       [driver.id]
     );
 
@@ -265,43 +400,49 @@ export const submitduty = async ({
 
     const activeDuty = activeRows[0];
 
-    // 2. Validation: End Odo > Start Odo
-    if (parseFloat(odometerValue) <= parseFloat(activeDuty.odo_civalue)) {
+    // 2. 🔥 ODOMETER VALIDATION: End Odo must be >= Start Odo
+    // Using parseFloat to handle potential decimal odometer readings accurately
+    if (parseFloat(odometerValue) < parseFloat(activeDuty.odo_civalue)) {
       throw new Error(
-        `End Odometer must be higher than Start (${activeDuty.odo_civalue})`
+        `Invalid Odometer! End value (${odometerValue}) cannot be less than Start value (${activeDuty.odo_civalue}).`
       );
     }
 
-    // 3. Update the row
+    // 3. Update the row with End Details
     await db.execute(
       `UPDATE drv_duty_details
        SET duty_out_datetime = NOW(), 
            coodomtr_image = ?, 
            odo_covalue = ?, 
            co_itemchkstatus = ?, 
-           ck_sts = 2
+           ck_sts = 2,
+           co_latitude = ?, 
+           co_longitude = ?, 
+           co_location = ?
        WHERE id = ?`,
       [
         odometerFileName,
         odometerValue,
         JSON.stringify(ci_itemchkstatus),
+        latitude,
+        longitude,
+        locationName,
         activeDuty.id,
       ]
     );
   }
 
   // --- TRIGGER EMAIL IN BACKGROUND ---
-  // Using setImmediate ensures the driver gets a fast response in the App
-  // while the email sends asynchronously.
   setImmediate(() => {
     sendEmailInBackground(
       driver,
       actionType,
       currentTime,
       odometerValue,
-      ci_itemchkstatus
+      ci_itemchkstatus,
+      locationName // Passing the location to the email helper
     );
   });
-  
+
   return { success: true, message: `Duty ${actionType} Successful` };
 };

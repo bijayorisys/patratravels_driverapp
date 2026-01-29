@@ -1,8 +1,16 @@
 import express from "express";
 import dotenv from "dotenv";
+
+// STEP 1: LOAD CONFIG & TIMEZONE FIRST (Before other imports)
+dotenv.config({ path: "./.env" });
+process.env.TZ = process.env.TZ || "Asia/Kolkata";
+
 import cors from "cors";
 import { createServer } from "http";
 import { Server } from "socket.io";
+
+// STEP 2: NOW IMPORT DATABASE & ROUTES
+// This ensures 'db' connects using the correct Asia/Kolkata time
 import db from "./config/database.js";
 import locationRoutes from "./routes/locationRoutes.js"; 
 import authRoutes from "./routes/authRoutes.js";
@@ -13,6 +21,7 @@ import dutyRoutes from "./routes/dutyRoutes.js";
 import attendanceHistoryRoutes from "./routes/attendanceHistoryRoutes.js";
 import DriverTriproutes from "./routes/DrivertripRoutes.js";
 import refuelRoutes from "./routes/refuelRoutes.js";
+import contactRoutes from "./routes/contactpageroutes.js";
 import path from "path";
 import { fileURLToPath } from "url";
 import fs from "fs";
@@ -20,8 +29,6 @@ import util from "util";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
-dotenv.config({ path: "./.env" });
 
 const app = express();
 const httpServer = createServer(app);
@@ -61,9 +68,10 @@ console.error = function (d) {
 };
 
 // --- 1. SETUP SOCKET.IO ---
+// ##############  new #############
 const io = new Server(httpServer, {
   cors: {
-    origin: ["http://localhost:3000","http://192.168.0.37:3000","https://app.patratravels.com"],
+    origin: ["http://localhost:3000","http://192.168.0.37:3000","https://app.patratravels.com","https://appadmin.patratravels.com"],
     methods: ["GET", "POST"],
     credentials: true,
   },
@@ -89,35 +97,55 @@ uploadDirs.forEach((dir) => {
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
 });
 
-app.use(cors());
+// ##############  new #############
+app.use(cors({
+  origin: ["http://localhost:3000", "https://app.patratravels.com", "https://appadmin.patratravels.com"],
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  credentials: true
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // --- 3. SERVE STATIC UPLOADS ---
-app.use(
-  "/uploads/selfies",
-  express.static(path.join(__dirname, "uploads", "selfies"))
-);
-app.use(
-  "/uploads/profile",
-  express.static(path.join(__dirname, "uploads", "profile"))
-);
-app.use(
-  "/uploads/documents",
-  express.static(path.join(__dirname, "uploads", "documents"))
-);
-app.use(
-  "/uploads/odometer",
-  express.static(path.join(__dirname, "uploads", "odometer"))
-);
-app.use(
-  "/uploads/chklist_img",
-  express.static(path.join(__dirname, "uploads", "chklist_img"))
-);
-app.use(
-  "/uploads/refuel_receipt",
-  express.static(path.join(__dirname, "uploads", "refuel_receipt"))
-);
+// app.use(
+//   "/uploads/selfies",
+//   express.static(path.join(__dirname, "uploads", "selfies"))
+// );
+// app.use(
+//   "/uploads/profile",
+//   express.static(path.join(__dirname, "uploads", "profile"))
+// );
+// app.use(
+//   "/uploads/documents",
+//   express.static(path.join(__dirname, "uploads", "documents"))
+// );
+// app.use(
+//   "/uploads/odometer",
+//   express.static(path.join(__dirname, "uploads", "odometer"))
+// );
+// app.use(
+//   "/uploads/chklist_img",
+//   express.static(path.join(__dirname, "uploads", "chklist_img"))
+// );
+// app.use(
+//   "/uploads/refuel_receipt",
+//   express.static(path.join(__dirname, "uploads", "refuel_receipt"))
+// );
+// ##############  new #############
+// --- 3. SERVE STATIC UPLOADS (REPLACE YOUR OLD SECTION 3) ---
+const staticOptions = {
+  setHeaders: (res) => {
+    res.set("Access-Control-Allow-Origin", "https://appadmin.patratravels.com");
+    res.set("Cross-Origin-Resource-Policy", "cross-origin");
+  }
+};
+
+app.use("/uploads/selfies", express.static(path.join(__dirname, "uploads", "selfies"), staticOptions));
+app.use("/uploads/profile", express.static(path.join(__dirname, "uploads", "profile"), staticOptions));
+app.use("/uploads/documents", express.static(path.join(__dirname, "uploads", "documents"), staticOptions));
+app.use("/uploads/odometer", express.static(path.join(__dirname, "uploads", "odometer"), staticOptions));
+app.use("/uploads/chklist_img", express.static(path.join(__dirname, "uploads", "chklist_img"), staticOptions));
+app.use("/uploads/refuel_receipt", express.static(path.join(__dirname, "uploads", "refuel_receipt"), staticOptions));
 
 // --- 4. SOCKET LOGIC ---
 io.on("connection", (socket) => {
@@ -145,6 +173,7 @@ async function startServer() {
     app.use("/api/v1/admin", adminRoutes);
     app.use("/api/v1/driver", DriverTriproutes);
     app.use("/api/v1/refuel", refuelRoutes);
+    app.use("/api/v1/contact", contactRoutes);
 
     // --- 6. SERVE REACT BUILD FILES (FROM 'public') ---
 

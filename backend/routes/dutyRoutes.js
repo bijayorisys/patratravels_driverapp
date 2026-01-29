@@ -28,7 +28,14 @@ if (!fs.existsSync(checklistDir)) {
 // ==============================
 // MULTER (MEMORY STORAGE)
 // ==============================
-const upload = multer({ storage: multer.memoryStorage() });
+// const upload = multer({ storage: multer.memoryStorage() });
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 8 * 1024 * 1024,
+    fieldSize: 20 * 1024 * 1024,
+  },
+});
 
 // ==============================
 // 2. SMART COMPRESSION HELPER (< 100KB)
@@ -37,7 +44,7 @@ const saveImage = async (file, driverId, targetDir) => {
   if (!file || !file.buffer) return null;
 
   const filename = `${driverId}_${Date.now()}_${Math.round(
-    Math.random() * 1000
+    Math.random() * 1000,
   )}.jpeg`;
   const filepath = path.join(targetDir, filename);
 
@@ -119,6 +126,9 @@ router.post("/duty", auth, upload.any(), async (req, res) => {
       odometerValue: req.body.odometerValue || null,
       ci_itemchkstatus,
       buttonParameter,
+      latitude: req.body.latitude,   
+      longitude: req.body.longitude, 
+      locationName: req.body.locationName 
     });
 
     res.json({
@@ -150,7 +160,7 @@ router.get("/status/:driverIdentifier", auth, async (req, res) => {
     if (isNaN(driverIdentifier)) {
       const [driverCheck] = await db.execute(
         "SELECT driver_id FROM tbl_drivers WHERE driver_regno = ?",
-        [driverIdentifier]
+        [driverIdentifier],
       );
       if (driverCheck.length === 0) return res.json({ dutyStatus: 0 });
       driverId = driverCheck[0].driver_id;
@@ -158,12 +168,19 @@ router.get("/status/:driverIdentifier", auth, async (req, res) => {
 
     // 3. SQL Query: Fetch record ONLY for that specific date
     // We use DATE(duty_in_datetime) = ? to match the "2026-01-05" string
+    // const [rows] = await db.execute(
+    //   `SELECT * FROM drv_duty_details
+    //    WHERE drv_id = ?
+    //    AND DATE(duty_in_datetime) = ?
+    //    ORDER BY duty_in_datetime DESC LIMIT 1`,
+    //   [driverId, queryDate]
+    // );
     const [rows] = await db.execute(
       `SELECT * FROM drv_duty_details 
        WHERE drv_id = ? 
-       AND DATE(duty_in_datetime) = ? 
+       AND DATE(CONVERT_TZ(duty_in_datetime, '+00:00', '+05:30')) = ?
        ORDER BY duty_in_datetime DESC LIMIT 1`,
-      [driverId, queryDate]
+      [driverId, queryDate],
     );
 
     // 4. If no rows found for TODAY, return status 0 (Frontend will show START DUTY)
@@ -188,13 +205,24 @@ router.get("/status/:driverIdentifier", auth, async (req, res) => {
       }
     };
 
+    // const formatDate = (date) =>
+    //   date
+    //     ? new Date(date).toLocaleString("en-GB", {
+    //         day: "2-digit",
+    //         month: "short",
+    //         hour: "2-digit",
+    //         minute: "2-digit",
+    //       })
+    //     : "Pending";
     const formatDate = (date) =>
       date
         ? new Date(date).toLocaleString("en-GB", {
+            timeZone: "Asia/Kolkata",
             day: "2-digit",
             month: "short",
             hour: "2-digit",
             minute: "2-digit",
+            hour12: true,
           })
         : "Pending";
 

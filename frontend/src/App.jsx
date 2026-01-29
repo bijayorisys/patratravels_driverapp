@@ -106,13 +106,14 @@ function App() {
     socket.connect();
 
     const onConnect = () => {
-      console.log("✅ Connected! ID:", socket.id);
+      console.log("✅ Connected!");
+      // console.log("✅ Connected! ID:", socket.id);
       console.log("🚀 Transport:", socket.io.engine.transport.name);
     };
 
     const onUpgrade = () => {
       console.log(
-        "✨ Transport upgraded:",
+        "Transport upgraded:",
         socket.io.engine.transport.name
       );
     };

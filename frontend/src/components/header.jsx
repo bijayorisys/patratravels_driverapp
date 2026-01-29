@@ -608,7 +608,7 @@ const HeaderLayout = () => {
 
       {/* === 2. TOP HEADER (Fixed) === */}
       <header
-        className="navbar navbar-expand-md navbar-light bg-white sticky-top shadow-sm px-3"
+        className="navbar navbar-expand-md navbar-light bg-white sticky-top shadow-sm px-2"
         style={{ height: "64px", zIndex: 900 }}
       >
         <div className="container-fluid mw-1200 px-0">
@@ -648,7 +648,7 @@ const HeaderLayout = () => {
             </div>
           </div>
 
-          <div className="ms-auto d-flex align-items-center gap-2">
+          <div className="ms-auto d-flex align-items-center gap-1">
             <button
               className="btn btn-light rounded-circle p-2 text-secondary position-relative border-0"
               style={{ width: "40px", height: "40px" }}

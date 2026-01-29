@@ -68,9 +68,9 @@ const MyTripDetails = () => {
       const res = await api.post("/driver/send-otp", { enq_id: trip.enq_id });
 
       // 2. Show DEV OTP Alert (Only if OTP is returned)
-      if (res.data.otp) {
-        toast.success("OTP sent to guest successfully " + res.data.otp);
-      }
+      // if (res.data.otp) {
+      //   toast.success("OTP sent to guest successfully " + res.data.otp);
+      // }
 
       // 3. Navigate after alert is closed
       navigate(`/start-trip/${trip.enq_id}`);

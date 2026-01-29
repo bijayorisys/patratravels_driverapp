@@ -1,177 +1,170 @@
 import React from "react";
-import { Car } from "lucide-react";
+import IconLogo from "../assets/icon logo.png"; 
 
 const Loader = ({ message = "Patra Driver World" }) => {
     return (
-        <div className="ultra-loader-overlay">
+        <div className="driver-loader-overlay">
             <style>{`
-                .ultra-loader-overlay {
+                /* --- Variables --- */
+                :root {
+                    --driver-primary: #ff7300; /* Brand Orange */
+                    --driver-secondary: #1e40af; /* Brand Blue */
+                    --bg-color: #ffffff;
+                }
+
+                /* --- Main Container (Native App Feel) --- */
+                .driver-loader-overlay {
                     position: fixed;
                     inset: 0;
-                    /* Patra Travels Light Theme Gradient */
-                    background: linear-gradient(135deg, #ff7e46 0%, #2f80ed 100%);
+                    background-color: var(--bg-color);
                     display: flex;
                     flex-direction: column;
                     align-items: center;
                     justify-content: center;
-                    z-index: 9999;
-                    overflow: hidden;
+                    z-index: 99999;
+                    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+                    /* Subtle background pattern for premium feel */
+                    background-image: radial-gradient(#e5e7eb 1px, transparent 1px);
+                    background-size: 24px 24px;
                 }
 
-                .loader-visual {
+                /* --- Logo Container (The Pulse Center) --- */
+                .logo-wrapper {
                     position: relative;
-                    width: 120px;
-                    height: 120px;
+                    width: 100px;
+                    height: 100px;
                     display: flex;
                     align-items: center;
                     justify-content: center;
+                    margin-bottom: 40px;
                 }
 
-                /* Background Morphing Ring - Blue */
-                .outer-pulse {
+                /* The Logo Image */
+                .app-icon {
+                    width: 60px;
+                    height: 60px;
+                    object-fit: contain;
+                    z-index: 10;
+                    /* Gentle breathing animation */
+                    animation: logo-breathe 2s ease-in-out infinite;
+                }
+
+                /* --- Animations: Radar Ripples --- */
+                .ripple {
                     position: absolute;
                     width: 100%;
                     height: 100%;
-                    border: 2px solid #ff5e00ff;
-                    border-radius: 35% 65% 70% 30% / 30% 30% 70% 70%;
-                    animation: morph 3s linear infinite;
-                    opacity: 0.3;
+                    border-radius: 50%;
+                    border: 2px solid var(--driver-primary);
+                    opacity: 0;
+                    z-index: 1;
                 }
 
-                /* Static Diamond Base - Blue */
-                .diamond-base {
-                    width: 65px;
-                    height: 65px;
-                    background: #ff7300ff;
-                    border-radius: 16px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    color: #fff;
-                    box-shadow: 0 0 40px rgba(0, 98, 204, 0.4);
-                    transform: rotate(45deg);
-                    overflow: hidden;
+                .ripple:nth-child(1) {
+                    animation: ripple-effect 2s linear infinite;
+                }
+                .ripple:nth-child(2) {
+                    animation: ripple-effect 2s linear infinite 0.6s;
+                }
+                .ripple:nth-child(3) {
+                    animation: ripple-effect 2s linear infinite 1.2s;
                 }
 
-                /* Car "Running" Animation */
-                .car-run-fix {
-                    transform: rotate(-45deg); 
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    animation: car-drive 1.5s infinite linear;
-                }
-
-                .car-icon {
-                    animation: suspension-bounce 0.3s infinite alternate ease-in-out;
-                }
-
-                /* --- Updated Branding Section --- */
-                .loading-brand-container {
-                    margin-top: 40px;
-                    display: flex;
-                    flex-direction: column;
-                    align-items: center;
-                    text-align: center;
-                }
-
-                /* Dark text for Light Background */
-                .brand-logo-main {
-                    font-family: 'Inter', sans-serif;
-                    font-weight: 900;
-                    font-size: 18px;
-                    color: #ff8800ff;
-                    letter-spacing: -1px;
-                    display: flex;
-                    align-items: baseline;
-                    animation: text-pulse 2s infinite ease-in-out;
-                }
-
-                /* Blue Accent */
-                .p-accent-loader {
-                    color: #ff7300ff;
-                    font-size: 32px;
-                    margin-right: 2px;
-                }
-
-                /* Darker text */
-                .s-accent-loader {
-                    font-weight: 700;
-                    font-size: 18px;
-                    color: #ffffffff;
-                    margin-left: 6px;
-                    letter-spacing: 1px;
-                }
-
-                /* Darker Subtext with Blue Shine */
-                .loading-subtext {
-                    margin-top: 10px;
-                    font-size: 11px;
-                    font-weight: 800;
-                    color: #555;
-                    letter-spacing: 3px;
-                    text-transform: uppercase;
-                    background: linear-gradient(90deg, #555 0%, #0062cc 50%, #555 100%);
-                    background-size: 200% auto;
-                    -webkit-background-clip: text;
-                    -webkit-text-fill-color: transparent;
-                    animation: shine 3s linear infinite;
-                }
-
-                /* Animations */
-                @keyframes morph {
-                    0% { border-radius: 35% 65% 70% 30% / 30% 30% 70% 70%; transform: rotate(0deg); }
-                    100% { border-radius: 35% 65% 70% 30% / 30% 30% 70% 70%; transform: rotate(360deg); }
-                }
-
-                @keyframes car-drive {
-                    0% { transform: rotate(-45deg) translateX(-60px); opacity: 0; }
-                    20% { opacity: 1; }
-                    80% { opacity: 1; }
-                    100% { transform: rotate(-45deg) translateX(60px); opacity: 0; }
-                }
-
-                @keyframes suspension-bounce {
-                    from { transform: translateY(0px); }
-                    to { transform: translateY(-2px); }
-                }
-
-                @keyframes text-pulse {
-                    0%, 100% { transform: scale(1); opacity: 1; }
-                    50% { transform: scale(0.98); opacity: 0.8; }
-                }
-
-                @keyframes shine {
-                    to { background-position: 200% center; }
-                }
-
-                /* Blue Glow for Light Theme */
-                .bg-glow {
+                /* White Circle Background for Logo */
+                .logo-bg {
                     position: absolute;
-                    width: 450px;
-                    height: 450px;
-                    background: radial-gradient(circle, rgba(0, 98, 204, 0.15) 0%, rgba(255,255,255,0) 70%);
-                    z-index: -1;
+                    width: 90px;
+                    height: 90px;
+                    background: white;
+                    border-radius: 50%;
+                    box-shadow: 0 10px 25px rgba(255, 115, 0, 0.2);
+                    z-index: 5;
+                }
+
+                /* --- Typography --- */
+                .brand-title {
+                    font-size: 24px;
+                    font-weight: 800;
+                    color: #111827; /* Dark Grey */
+                    letter-spacing: -0.5px;
+                    display: flex;
+                    align-items: center;
+                    gap: 4px;
+                }
+
+                .brand-highlight {
+                    color: var(--driver-primary);
+                }
+
+                .loading-msg {
+                    margin-top: 8px;
+                    font-size: 12px;
+                    font-weight: 600;
+                    letter-spacing: 2px;
+                    text-transform: uppercase;
+                    color: #9ca3af; /* Light Grey */
+                    position: relative;
+                    display: inline-block;
+                }
+
+                /* Loading Dots Animation */
+                .loading-msg::after {
+                    content: '...';
+                    animation: dots 1.5s steps(5, end) infinite;
+                    position: absolute;
+                    left: 100%;
+                }
+
+                /* --- Keyframes --- */
+                @keyframes ripple-effect {
+                    0% { transform: scale(0.8); opacity: 0.8; border-width: 4px; }
+                    100% { transform: scale(2.5); opacity: 0; border-width: 0px; }
+                }
+
+                @keyframes logo-breathe {
+                    0%, 100% { transform: scale(1); }
+                    50% { transform: scale(1.05); }
+                }
+
+                @keyframes dots {
+                    0%, 20% { content: ''; }
+                    40% { content: '.'; }
+                    60% { content: '..'; }
+                    80%, 100% { content: '...'; }
+                }
+
+                /* --- Bottom Branding (Optional) --- */
+                .bottom-brand {
+                    position: absolute;
+                    bottom: 30px;
+                    font-size: 10px;
+                    color: #d1d5db;
+                    font-weight: 500;
                 }
             `}</style>
 
-            <div className="bg-glow"></div>
-            
-            <div className="loader-visual">
-                <div className="outer-pulse"></div>
-                <div className="diamond-base">
-                    <div className="car-run-fix">
-                        <Car className="car-icon" size={32} strokeWidth={2.5} color="white" />
-                    </div>
-                </div>
+            {/* Logo Section with Radar Effect */}
+            <div className="logo-wrapper">
+                <div className="ripple"></div>
+                <div className="ripple"></div>
+                <div className="ripple"></div>
+                
+                <div className="logo-bg"></div>
+                
+                {/* ✅ YOUR ICON LOGO */}
+                <img src={IconLogo} alt="Patra Travels" className="app-icon" />
             </div>
 
-            <div className="loading-brand-container">
-                <div className="brand-logo-main">
-                    <span className="p-accent-loader">P</span>ATRA <span className="s-accent-loader">TRAVELS</span>
-                </div>
-                <p className="loading-subtext">{message}</p>
+            {/* Text Section */}
+            <div className="brand-title">
+                <span className="brand-highlight">PATRA</span> TRAVELS
             </div>
+            
+            <div className="loading-msg">
+                {message}
+            </div>
+
+            <div className="bottom-brand">DRIVER PARTNER APP</div>
         </div>
     );
 };

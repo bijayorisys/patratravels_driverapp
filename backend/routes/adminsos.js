@@ -39,6 +39,8 @@ const fetchGoogleAddress = async (latitude, longitude) => {
 router.post("/trigger", async (req, res) => {
   try {
     const { driverId, latitude, longitude } = req.body;
+    const USER_TYPE_DRIVER = 1;
+
 
     // A. Fetch Driver (Fast DB Call)
     const [driverRows] = await db.execute(
@@ -62,8 +64,8 @@ router.post("/trigger", async (req, res) => {
 
         // 2. Insert into Database
         await db.execute(
-          `INSERT INTO tbl_sos_alerts (driver_id, latitude, longitude, location_name) VALUES (?, ?, ?, ?)`,
-          [driver.driver_id, latitude, longitude, locationName]
+          `INSERT INTO tbl_sos_alerts (user_id, user_type, latitude, longitude, location_name) VALUES (?, ?, ?, ?, ?)`,
+          [driver.driver_id, USER_TYPE_DRIVER, latitude, longitude, locationName]
         );
 
         // 3. Prepare Email Content

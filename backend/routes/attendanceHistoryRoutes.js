@@ -150,18 +150,19 @@ router.get("/attendanceHistory/:driverId/:month/:year", async (req, res) => {
         ? `uploads/selfies/${record.selfie_path}`
         : null,
 
-      // British Format (DD/MM/YYYY)
+      // British Format (DD/MM/YYYY) - FORCED TO IST
       checkin_datetime: new Date(record.checkin_datetime).toLocaleString(
         "en-GB",
         {
+          timeZone: "Asia/Kolkata",
           day: "2-digit",
           month: "2-digit",
           year: "numeric",
           hour: "2-digit",
           minute: "2-digit",
           second: "2-digit",
-          hour12: false,
-        }
+          hour12: true,
+        },
       ),
     }));
 
@@ -172,7 +173,6 @@ router.get("/attendanceHistory/:driverId/:month/:year", async (req, res) => {
   }
 });
 
-// 2. GET SINGLE DAY DETAIL + DUTY (For Log Page)
 // 2. GET SINGLE DAY DETAIL + DUTY (For Dashboard & Log Page)
 router.get(
   "/attendanceCheckDate/:driverId/:date/:month/:year",
@@ -209,6 +209,19 @@ router.get(
 
       // --- STEP C: FETCH ATTENDANCE ---
       // Uses numeric ID for speed and accuracy
+      // const qry = `
+      //   SELECT 
+      //     a.*, 
+      //     d.driver_regno,
+      //     d.driver_fstname,
+      //     d.driver_lstname
+      //   FROM drv_attendance_details a 
+      //   JOIN tbl_drivers d ON a.drv_id = d.driver_id
+      //   WHERE a.drv_id = ?
+      //   AND DATE(a.checkin_datetime) = ? 
+      //   ORDER BY a.drv_atid DESC
+      //   LIMIT 1
+      // `;
       const qry = `
         SELECT 
           a.*, 
@@ -218,7 +231,7 @@ router.get(
         FROM drv_attendance_details a 
         JOIN tbl_drivers d ON a.drv_id = d.driver_id
         WHERE a.drv_id = ?
-        AND DATE(a.checkin_datetime) = ? 
+        AND DATE(CONVERT_TZ(a.checkin_datetime, '+00:00', '+05:30')) = ?
         ORDER BY a.drv_atid DESC
         LIMIT 1
       `;
@@ -238,7 +251,7 @@ router.get(
         WHERE drv_id = ? AND DATE(duty_in_datetime) = ? 
         ORDER BY id DESC LIMIT 1
       `,
-        [targetDriverId, fullDate]
+        [targetDriverId, fullDate],
       );
 
       if (dutyRows.length > 0) dutyRecord = dutyRows[0];
@@ -258,6 +271,7 @@ router.get(
       const formatDateTime = (dt) =>
         dt
           ? new Date(dt).toLocaleString("en-GB", {
+              timeZone: "Asia/Kolkata", 
               day: "2-digit",
               month: "2-digit",
               year: "numeric",
@@ -336,12 +350,14 @@ router.get(
       console.error("Attendance Check Route Error:", err);
       res.status(500).json({ success: false, message: "Server Error" });
     }
-  }
+  },
 );
 
 router.get("/sendItems", async (req, res) => {
   try {
-    const [items] = await db.execute("SELECT * FROM items where is_active=1");
+    const [items] = await db.execute(
+      "SELECT * FROM items where is_active=1 AND para=1",
+    );
 
     res.status(200).json({
       success: true,

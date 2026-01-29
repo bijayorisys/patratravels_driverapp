@@ -60,7 +60,7 @@ const compressImage = async (file) => {
             resolve(compressedFile);
           },
           "image/jpeg",
-          0.5
+          0.5,
         );
       };
       img.onerror = (err) => reject(err);
@@ -105,19 +105,31 @@ const DashboardPage = () => {
   const isCheckedOut = hasAttendance && Number(attendanceList[0]?.ck_sts) === 2; // Punched Out
 
   // Dates
-  const today = new Date();
-  const currentDate = today.toISOString().split("T")[0];
-  const currentMonth = String(today.getMonth() + 1).padStart(2, "0");
-  const currentYear = today.getFullYear();
+  // const today = new Date();
+    // const currentDate = today.toISOString().split("T")[0];
+  // const currentMonth = String(today.getMonth() + 1).padStart(2, "0");
+  // const currentYear = today.getFullYear();
+  const now = new Date();
+  const istDateStr = now.toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" });
+  // 3. Split parts so we can assign them to your separate variables
+  const [istYear, istMonth, istDay] = istDateStr.split("-");
+
+  // 4. Assign to your existing const names
+  const currentDate = istDateStr; // e.g., "2026-01-28"
+  const currentMonth = istMonth;  // e.g., "01"
+  const currentYear = istYear;    // e.g., "2026"
 
   const [notes, setNotes] = useState(""); // Used for Odometer reading now
-
   // Checklist State: { [itemId]: { value: 1/0, image: File } }
   const [checklistData, setChecklistData] = useState({});
 
-  const [date, setDate] = useState(String(currentDate));
+  // const [date, setDate] = useState(String(currentDate));
+  // const [month, setMonth] = useState(currentMonth);
+  // const [year, setYear] = useState(String(currentYear));
+  // 5. Initialize State (Your existing logic stays the same)
+  const [date, setDate] = useState(currentDate);
   const [month, setMonth] = useState(currentMonth);
-  const [year, setYear] = useState(String(currentYear));
+  const [year, setYear] = useState(currentYear);
 
   // Modals / Form Visibility
   const [showAttendanceForm, setShowAttendanceForm] = useState(false);
@@ -176,28 +188,6 @@ const DashboardPage = () => {
     }
   };
 
-  // const fetchAssignedTrip = async () => {
-  //   try {
-  //     setLoadingTrips(true);
-  //     const regNo = localStorage.getItem("driverRegNo");
-  //     if (!regNo) {
-  //       setTodayTrips([]);
-  //       return;
-  //     }
-  //     const res = await api.get(`/driver/assigned-trip?driver_regno=${regNo}`);
-  //     const tripData = Array.isArray(res.data) ? res.data : [res.data];
-  //     if (tripData.length > 0 && tripData[0].drv_tripid) {
-  //       setTodayTrips(tripData);
-  //     } else {
-  //       setTodayTrips([]);
-  //     }
-  //   } catch (err) {
-  //     setTodayTrips([]);
-  //   } finally {
-  //     setLoadingTrips(false);
-  //   }
-  // };
-
   // 3. Call fetchItemsDetails on load
   useEffect(() => {
     fetchItemsDetails();
@@ -244,7 +234,7 @@ const DashboardPage = () => {
     try {
       const dayOnly = date.includes("-") ? date.split("-")[2] : date;
       const res = await api.get(
-        `/attendanceCheckDate/${driverId}/${dayOnly}/${month}/${year}`
+        `/attendanceCheckDate/${driverId}/${dayOnly}/${month}/${year}`,
       );
       // console.log("DASHBOARD DATA:", res.data?.data);
       setAttendanceList(res.data?.data || []);
@@ -253,146 +243,188 @@ const DashboardPage = () => {
     }
   };
 
+  // ####################  working function old ##############
   // const fetchLocationName = async (latitude, longitude) => {
-  //   // 1. Check if coordinates exist
-  //   // console.log("📍 Fetching Location for:", latitude, longitude);
+  //   // 1. Validation
   //   if (!latitude || !longitude) return "Invalid Coordinates";
 
-  //   // 2. Check API Key
-  //   const API_KEY = process.env.REACT_APP_GOOGLE_MAPS_KEY;
-  //   // console.log(
-  //   //   "🔑 API Key Status:",
-  //   //   API_KEY ? "Loaded" : "MISSING (Check .env)"
-  //   // );
-
-  //   if (!API_KEY) return "Unknown Location (No Key)";
-
   //   try {
-  //     const res = await fetch(
-  //       `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${API_KEY}`
-  //     );
-  //     const data = await res.json();
+  //     // This sends the coordinates to your server.js, which talks to Google
+  //     const res = await api.post("/location/geocode", {
+  //       latitude: latitude,
+  //       longitude: longitude,
+  //     });
 
-  //     // 3. Check what Google actually replied
-  //     // console.log("📡 Google API Response:", data);
-
-  //     if (data.status === "OK" && data.results.length > 0) {
-  //       return data.results[0].formatted_address;
+  //     // 3. Handle Success
+  //     if (res.data.success) {
+  //       return res.data.address;
   //     } else {
-  //       console.error("❌ Geocoding Failed:", data.status, data.error_message);
+  //       console.warn("Backend could not find address:", res.data.message);
   //       return "Unknown Location";
   //     }
   //   } catch (err) {
-  //     console.error("❌ Network Error:", err);
+  //     console.error("❌ Location API Error:", err);
   //     return "Unknown Location";
   //   }
   // };
 
-  // --- ACTION HANDLERS ---
-  // New function to fetch GPS
-  // const getGpsLocation = () => {
-  //   setGpsData(null); // Clear previous data
-  //   setLocationAddress("");
-
-  //   toast.loading("📍 Fetching Location...", { id: "gps" });
-
-  //   if (!navigator.geolocation) {
-  //     return toast.error("GPS not supported.");
-  //   }
-
-  //   navigator.geolocation.getCurrentPosition(
-  //     async (position) => {
-  //       toast.dismiss("gps");
-  //       const lat = position.coords.latitude;
-  //       const lng = position.coords.longitude;
-
-  //       setGpsData({
-  //         latitude: lat,
-  //         longitude: lng,
-  //         accuracy: position.coords.accuracy,
-  //       });
-
-  //       // Fetch address
-  //       const address = await fetchLocationName(lat, lng);
-  //       setLocationAddress(address);
-  //       toast.success("Location Verified!");
-  //     },
-  //     (error) => {
-  //       toast.dismiss("gps");
-  //       toast.error("Location access denied or failed.");
-  //       console.error(error);
-  //     },
-  //     { enableHighAccuracy: true, timeout: 10000 }
-  //   );
-  // };
-
+  // ################## New improved 3s if  not  send  lat long ##########
   const fetchLocationName = async (latitude, longitude) => {
-    // 1. Validation
-    if (!latitude || !longitude) return "Invalid Coordinates";
+    if (!latitude || !longitude) return null;
+
+    // Create a timeout promise that resolves after 5 seconds
+    const timeoutPromise = new Promise((resolve) =>
+      setTimeout(() => resolve("TIMEOUT"), 5000),
+    );
 
     try {
-      // This sends the coordinates to your server.js, which talks to Google
-      const res = await api.post("/location/geocode", {
+      const apiCall = api.post("/location/geocode", {
         latitude: latitude,
         longitude: longitude,
       });
 
-      // 3. Handle Success
+      // Race: Whichever finishes first wins
+      const res = await Promise.race([apiCall, timeoutPromise]);
+
+      if (res === "TIMEOUT") {
+        console.warn("⚠️ Address fetch timed out - keeping coordinates");
+        return null; // Return null so we stick with Lat/Lon
+      }
+
       if (res.data.success) {
         return res.data.address;
-      } else {
-        console.warn("Backend could not find address:", res.data.message);
-        return "Unknown Location";
       }
     } catch (err) {
       console.error("❌ Location API Error:", err);
-      return "Unknown Location";
     }
+    return null;
   };
 
-  const getGpsLocation = () => {
+  // ################## working function  old ##################
+  // const getGpsLocation = () => {
+  //   if (!navigator.geolocation) return toast.error("GPS not supported");
+
+  //   setIsLocating(true);
+
+  //   navigator.geolocation.getCurrentPosition(
+  //     async (position) => {
+  //       const { latitude, longitude, accuracy } = position.coords;
+
+  //       // Save data
+  //       setGpsData({ latitude, longitude, accuracy });
+
+  //       // Fetch address in background
+  //       try {
+  //         const addr = await fetchLocationName(latitude, longitude);
+  //         setLocationAddress(addr);
+  //       } catch (e) {
+  //         setLocationAddress("Unknown Location");
+  //       } finally {
+  //         setIsLocating(false);
+  //       }
+  //     },
+  //     (error) => {
+  //       console.warn("GPS Error", error);
+  //       setIsLocating(false);
+  //       toast.error("GPS Signal Weak. Please stand outside.");
+  //     },
+  //     { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+  //   );
+  // };
+
+  // ################# new  function ROBUST GPS LOGIC (High -> Low Accuracy) ##############
+  const getGpsLocation = (isSilent = false) => {
     if (!navigator.geolocation) return toast.error("GPS not supported");
 
-    setIsLocating(true);
+if (!isSilent) setIsLocating(true);
+    // Shared Success Handler
+    const handleSuccess = async (position) => {
+      const { latitude, longitude, accuracy } = position.coords;
 
+      // 1. Save Raw Data
+      setGpsData({ latitude, longitude, accuracy });
+
+      // 2. IMMEDIATE FALLBACK: Set coordinates as address
+      // (This makes the app feel instant)
+      const fallbackAddr = `Lat: ${latitude.toFixed(5)}, Lon: ${longitude.toFixed(5)}`;
+      setLocationAddress(fallbackAddr);
+
+      // 3. Stop Spinner NOW (User can submit immediately)
+      setIsLocating(false);
+
+      // 4. Try fetching real name in background (Silent update)
+      const realAddress = await fetchLocationName(latitude, longitude);
+      if (realAddress) {
+        setLocationAddress(realAddress); // Overwrite if successful
+      }
+    };
+
+    // Attempt 1: High Accuracy (Satellite) - 5s Timeout
     navigator.geolocation.getCurrentPosition(
-      async (position) => {
-        const { latitude, longitude, accuracy } = position.coords;
-
-        // Save data
-        setGpsData({ latitude, longitude, accuracy });
-
-        // Fetch address in background
-        try {
-          const addr = await fetchLocationName(latitude, longitude);
-          setLocationAddress(addr);
-        } catch (e) {
-          setLocationAddress("Unknown Location");
-        } finally {
-          setIsLocating(false);
-        }
-      },
+      handleSuccess,
       (error) => {
-        console.warn("GPS Error", error);
-        setIsLocating(false);
-        toast.error("GPS Signal Weak. Please stand outside.");
+        console.warn(
+          "GPS High Accuracy failed. Switching to Network...",
+          error,
+        );
+
+        // Attempt 2: Low Accuracy (Network/WiFi) - 10s Timeout
+        navigator.geolocation.getCurrentPosition(
+          handleSuccess,
+          (finalError) => {
+            console.error(" All Location methods failed", finalError);
+            setIsLocating(false);
+            if (!isSilent) {
+              toast.error("Location failed. Check GPS settings.");
+            }
+          },
+          { enableHighAccuracy: false, timeout: 10000, maximumAge: 0 },
+        );
       },
-      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+      { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 },
     );
   };
 
+  // --- WARM UP GPS ON MOUNT  new ---
+  useEffect(() => {
+    // Only warm up if we don't have data yet
+    if (!gpsData) {
+      getGpsLocation(true);
+    }
+  }, []);
+
   // --- HELPER: Get Date/Time for Display ---
+  // const getCurrentTimeDetails = () => {
+  //   const now = new Date();
+  //   return {
+  //     date: now.toLocaleDateString("en-GB"), // 05/01/2026
+  //     time: now.toLocaleTimeString("en-US", {
+  //       hour: "2-digit",
+  //       minute: "2-digit",
+  //       hour12: true,
+  //     }), // 10:30 AM
+  //   };
+  // };
+// --- HELPER: Get Date/Time for Display (FIXED FOR IST) ---
   const getCurrentTimeDetails = () => {
     const now = new Date();
+    
     return {
-      date: now.toLocaleDateString("en-GB"), // 05/01/2026
+      // 1. Force Date to DD/MM/YYYY in India Time
+      date: now.toLocaleDateString("en-GB", { 
+        timeZone: "Asia/Kolkata" 
+      }), 
+      
+      // 2. Force Time to 10:30 AM in India Time
       time: now.toLocaleTimeString("en-US", {
+        timeZone: "Asia/Kolkata",
         hour: "2-digit",
         minute: "2-digit",
         hour12: true,
-      }), // 10:30 AM
+      }), 
     };
   };
+
   const handlePunchAction = (type) => {
     // 1. Reset UI
     setImage(null);
@@ -401,8 +433,7 @@ const DashboardPage = () => {
     setLocationAddress("");
 
     // 2. Start GPS NOW (While user opens camera)
-    getGpsLocation();
-
+getGpsLocation(false);
     // 3. Open Camera (Native Input)
     setTimeout(() => {
       document.getElementById("attendanceCamera").click();
@@ -455,6 +486,7 @@ const DashboardPage = () => {
   //     setIsLoadingDuty(false);
   //   }
   // };
+
   const fetchDutyStatus = async () => {
     setIsLoadingDuty(true);
     const currentRegNo = localStorage.getItem("driverRegNo");
@@ -469,7 +501,7 @@ const DashboardPage = () => {
 
     try {
       const res = await api.get(
-        `/duty/status/${currentRegNo}?date=${localDate}`
+        `/duty/status/${currentRegNo}?date=${localDate}`,
       );
 
       const statusFromApi = res.data?.dutyStatus;
@@ -479,22 +511,6 @@ const DashboardPage = () => {
         statusFromApi !== undefined && statusFromApi !== null
           ? Number(statusFromApi)
           : 0;
-
-      // if (finalStatus === 1) {
-      //   try {
-      //     // Call the new separate API that ignores dates
-      //     const resOdo = await api.get(`/duty/active-odo/${currentRegNo}`);
-
-      //     // If this API returns a value, use it! It's more accurate for validation.
-      //     if (resOdo.data?.start_odo) {
-      //       //  console.log("🔥 Fixed Start Odo:", resOdo.data.start_odo);
-      //       start_odovalue = resOdo.data.start_odo;
-      //     }
-      //   } catch (err) {
-      //     console.error("Active Odo Check Failed, using fallback", err);
-      //   }
-      // }
-      // -----------------------------------------------------------
 
       setDutyStatus(finalStatus);
       // setStartOdoVal(start_odovalue);
@@ -542,7 +558,7 @@ const DashboardPage = () => {
     setDutyType(type);
 
     // 1. DO NOT Show Form Yet
-    // setShowDutyForm(true); <--- REMOVED
+    setShowDutyForm(true);
     setShowAttendanceForm(false);
 
     // 2. Reset Data
@@ -551,10 +567,12 @@ const DashboardPage = () => {
     setNotes("");
     setChecklistData({});
 
+    getGpsLocation(false);
+
     // 3. Open Camera
-    setTimeout(() => {
-      if (odoCameraRef.current) odoCameraRef.current.click();
-    }, 200);
+    // setTimeout(() => {
+    //   if (odoCameraRef.current) odoCameraRef.current.click();
+    // }, 200);
   };
 
   // --- IMAGE HANDLERS ---
@@ -695,14 +713,21 @@ const DashboardPage = () => {
       formData.append("selfie", image);
       formData.append("latitude", gpsData.latitude);
       formData.append("longitude", gpsData.longitude);
-      formData.append("locationName", locationAddress || "Unknown");
+      // If address is missing or "Unknown", send coordinates
+      let finalLocation = locationAddress;
+      if (!finalLocation || finalLocation === "Unknown Location") {
+        finalLocation = `Lat: ${gpsData.latitude.toFixed(5)}, Lon: ${gpsData.longitude.toFixed(5)}`;
+      }
+      formData.append("locationName", finalLocation);
+
+      // formData.append("locationName", locationAddress || "Unknown");
       formData.append("accuracy", gpsData.accuracy);
 
       const btnParam = !attendanceList?.length
         ? 0
         : isOnline
-        ? attendanceList[0]?.drv_atid
-        : 0;
+          ? attendanceList[0]?.drv_atid
+          : 0;
 
       formData.append("btnParameter", btnParam);
 
@@ -753,83 +778,144 @@ const DashboardPage = () => {
       });
     }
   };
+
   // B. DUTY SUBMIT (Start/End Duty)
+  // const handleDutySubmit = async () => {
+  //   // A. Simple Validations
+  //   if (!odoImage) {
+  //     navigator.vibrate?.(80);
+  //     return toast.error("📸 Odometer photo required");
+  //   }
+
+  //   if (!notes) {
+  //     navigator.vibrate?.(80);
+  //     return toast.error("⌨ Enter odometer reading");
+  //   }
+
+  //   // C. Checklist Validation
+  //   for (let item of checklistItems) {
+  //     const data = checklistData[item.id];
+  //     if (data?.value === undefined) {
+  //       navigator.vibrate?.(80);
+  //       return toast.warning(`Please verify: ${item.name}`);
+  //     }
+  //   }
+  //   setSubmitting(true);
+
+  //   try {
+  //     const buttonParameter = dutyType === "START" ? 1 : 2;
+  //     const formData = new FormData();
+
+  //     // Append Data
+  //     formData.append("odometer_image", odoImage);
+  //     formData.append("odometerValue", notes);
+
+  //     const checklistPayload = {};
+  //     checklistItems.forEach((item) => {
+  //       const data = checklistData[item.id];
+  //       checklistPayload[item.id] = { name: item.name, value: data.value };
+  //       if (data?.image) {
+  //         formData.append(`checklist_image_${item.id}`, data.image);
+  //         checklistPayload[item.id].image = data.image.name;
+  //       }
+  //     });
+
+  //     formData.append("ci_itemchkstatus", JSON.stringify(checklistPayload));
+  //     formData.append("buttonParameter", buttonParameter);
+  //     formData.append("driverId", driverId);
+
+  //     // API Call
+  //     const endpoint = "/duty/duty";
+  //     const res = await api.post(endpoint, formData);
+
+  //     navigator.vibrate?.(120);
+
+  //     // ---------------------------------------------------------
+  //     // D. SUCCESS -> SWEET ALERT (As requested)
+  //     // ---------------------------------------------------------
+  //     await Swal.fire({
+  //       icon: "success",
+  //       title: buttonParameter === 1 ? "🟢 Duty Started" : "🔴 Duty Ended",
+  //       text: res.data.message || `Duty ${dutyType} Successfully`,
+  //       background: "#ecfeff",
+  //       timer: 1700,
+  //       showConfirmButton: false,
+  //       customClass: { popup: "swal2-rounded" },
+  //     });
+
+  //     setDutyStatus(buttonParameter);
+  //     setShowDutyForm(false);
+  //   } catch (err) {
+  //     navigator.vibrate?.(200);
+  //     Swal.close();
+  //     const errorMessage =
+  //       err.response?.data?.message ||
+  //       err.message ||
+  //       "Sync Failed. Please retry.";
+  //     toast.error(errorMessage);
+  //   } finally {
+  //     setSubmitting(false);
+  //   }
+  // };
+  // #########  new  location name and gps data ############
   const handleDutySubmit = async () => {
-    // A. Simple Validations
-    if (!odoImage) {
-      navigator.vibrate?.(80);
-      return toast.error("📸 Odometer photo required");
-    }
+  if (!odoImage) return toast.error("📸 Odometer photo required");
+  if (!notes) return toast.error("⌨ Enter odometer reading");
+  
+  // 🔥 NEW: Check for GPS Data
+  if (!gpsData) {
+    getGpsLocation(false);
+    return toast.warning("📍 Waiting for GPS location...");
+  }
 
-    if (!notes) {
-      navigator.vibrate?.(80);
-      return toast.error("⌨ Enter odometer reading");
-    }
+  for (let item of checklistItems) {
+    const data = checklistData[item.id];
+    if (data?.value === undefined) return toast.warning(`Please verify: ${item.name}`);
+  }
 
-    // C. Checklist Validation
-    for (let item of checklistItems) {
+  setSubmitting(true);
+  try {
+    const buttonParameter = dutyType === "START" ? 1 : 2;
+    const formData = new FormData();
+    formData.append("odometer_image", odoImage);
+    formData.append("odometerValue", notes);
+    
+    // 🔥 NEW: Append GPS fields
+    formData.append("latitude", gpsData.latitude);
+    formData.append("longitude", gpsData.longitude);
+    formData.append("locationName", locationAddress || `Lat: ${gpsData.latitude.toFixed(5)}`);
+
+    const checklistPayload = {};
+    checklistItems.forEach((item) => {
       const data = checklistData[item.id];
-      if (data?.value === undefined) {
-        navigator.vibrate?.(80);
-        return toast.warning(`Please verify: ${item.name}`);
+      checklistPayload[item.id] = { name: item.name, value: data.value };
+      if (data?.image) {
+        formData.append(`checklist_image_${item.id}`, data.image);
+        checklistPayload[item.id].image = data.image.name;
       }
-    }
-    setSubmitting(true);
+    });
 
-    try {
-      const buttonParameter = dutyType === "START" ? 1 : 2;
-      const formData = new FormData();
+    formData.append("ci_itemchkstatus", JSON.stringify(checklistPayload));
+    formData.append("buttonParameter", buttonParameter);
 
-      // Append Data
-      formData.append("odometer_image", odoImage);
-      formData.append("odometerValue", notes);
+    const res = await api.post("/duty/duty", formData);
 
-      const checklistPayload = {};
-      checklistItems.forEach((item) => {
-        const data = checklistData[item.id];
-        checklistPayload[item.id] = { name: item.name, value: data.value };
-        if (data?.image) {
-          formData.append(`checklist_image_${item.id}`, data.image);
-          checklistPayload[item.id].image = data.image.name;
-        }
-      });
+    await Swal.fire({
+      icon: "success",
+      title: buttonParameter === 1 ? "🟢 Duty Started" : "🔴 Duty Ended",
+      text: res.data.message,
+      timer: 1700,
+      showConfirmButton: false
+    });
 
-      formData.append("ci_itemchkstatus", JSON.stringify(checklistPayload));
-      formData.append("buttonParameter", buttonParameter);
-      formData.append("driverId", driverId);
-
-      // API Call
-      const endpoint = "/duty/duty";
-      const res = await api.post(endpoint, formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-
-      navigator.vibrate?.(120);
-
-      // ---------------------------------------------------------
-      // D. SUCCESS -> SWEET ALERT (As requested)
-      // ---------------------------------------------------------
-      await Swal.fire({
-        icon: "success",
-        title: buttonParameter === 1 ? "🟢 Duty Started" : "🔴 Duty Ended",
-        text: res.data.message || `Duty ${dutyType} Successfully`,
-        background: "#ecfeff",
-        timer: 1700,
-        showConfirmButton: false,
-        customClass: { popup: "swal2-rounded" },
-      });
-
-      setDutyStatus(buttonParameter);
-      setShowDutyForm(false);
-    } catch (err) {
-      navigator.vibrate?.(200);
-      // Close the loading swal
-      Swal.close();
-      toast.error(err.response?.data?.message || "Sync Failed. Please retry.");
-    } finally {
-      setSubmitting(false);
-    }
-  };
+    setDutyStatus(buttonParameter);
+    setShowDutyForm(false);
+  } catch (err) {
+    toast.error(err.response?.data?.message || "Sync Failed");
+  } finally {
+    setSubmitting(false);
+  }
+};
 
   // --- STYLES ---
   const styles = {
@@ -1262,7 +1348,10 @@ const DashboardPage = () => {
               >
                 {todayTrips.length}
               </span>
-              <span className="text-dark fw-bold ms-1" style={{ fontSize: "0.7rem" }}>
+              <span
+                className="text-dark fw-bold ms-1"
+                style={{ fontSize: "0.7rem" }}
+              >
                 Trips
               </span>
             </div>
